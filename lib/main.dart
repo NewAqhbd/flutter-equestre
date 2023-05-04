@@ -151,6 +151,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
     final conn = await DatabaseHelper.getConnection();
     final idPersSql = await conn.query('SELECT id_utilisateur FROM utilisateur WHERE nom_utilisateur = ?', [_MyLoginPageState._login]);
     final idPers = idPersSql.first['id_utilisateur'];
+    await conn.close();
 
     return Future.value(idPers);
   }
@@ -160,6 +161,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
     final conn = await DatabaseHelper.getConnection();
     const sql = 'SELECT * FROM utilisateur WHERE nom_utilisateur = ? AND mdp = ?';
     final result = await conn.query(sql, [login, hashmdp]);
+    await conn.close();
 
     return result.length == 1;
   }
@@ -189,7 +191,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: SfCalendar(
         view: CalendarView.day,
         allowedViews: const [CalendarView.day, CalendarView.week, CalendarView.month],
-        minDate: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour),
+        // minDate: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour),
         dataSource: _getDataSource(),
         monthViewSettings: const MonthViewSettings(
             appointmentDisplayMode: MonthAppointmentDisplayMode.appointment
@@ -463,7 +465,9 @@ class _MyHomePageState extends State<MyHomePage> {
       return isInscrit == 1;
     } catch (e){
       return false;
-    }  
+    }  finally{
+      await conn.close();
+    }
   }
 
   Future<bool> _isInscrit(CalendarTapDetails details) async{
@@ -480,6 +484,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return isInscrit == 1;
   } catch (e){
     return false;
+  } finally{
+    await conn.close();
   }
     
     
@@ -588,6 +594,8 @@ class _MyAppointment extends Appointment {
     } on StateError catch (e) {
       print("Catch!");
       const isInscrit = 0;
+    } finally {
+      await conn.close();
     }
     
     if(isInscrit == 1) {
